@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFE | نظام التعليم المتكامل</title>
+    <style>
+        :root { --main: #2563eb; --dark: #0b1220; --bg: #f1f5f9; --white: #fff; --red: #ef4444; --green: #22c55e; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; transition: 0.3s; }
+        body { margin: 0; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+
+        /* شاشة الدخول الاحترافية بدون إظهار الباسورد */
+        #login_screen { position: fixed; inset: 0; background: var(--dark); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        .login-card { background: var(--white); padding: 40px; border-radius: 25px; width: 420px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+        .login-card h1 { font-size: 35px; color: var(--dark); margin-bottom: 25px; font-weight: 800; }
+        
+        .role-selector { display: flex; gap: 15px; margin-bottom: 25px; }
+        .role-btn { flex: 1; padding: 15px; border-radius: 12px; border: 2px solid #eee; cursor: pointer; font-weight: bold; background: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .role-btn.active { border-color: var(--main); background: var(--main); color: white; }
+
+        input { width: 100%; padding: 15px; margin-top: 12px; border-radius: 12px; border: 1px solid #ddd; background: #f8fafc; font-size: 15px; }
+        .login-submit { width: 100%; padding: 16px; margin-top: 25px; border-radius: 12px; border: none; background: var(--main); color: white; font-weight: bold; font-size: 17px; cursor: pointer; }
+
+        /* القائمة الجانبية */
+        .sidebar { width: 280px; background: var(--dark); color: white; display: flex; flex-direction: column; }
+        .sidebar h2 { text-align: center; padding: 25px; border-bottom: 1px solid #1e293b; margin: 0; }
+        .nav-items { flex: 1; overflow-y: auto; padding: 10px 0; }
+        .nav-item { padding: 12px 20px; margin: 4px 12px; border-radius: 10px; cursor: pointer; color: #94a3b8; display: flex; align-items: center; gap: 12px; font-size: 14px; }
+        .nav-item:hover, .nav-item.active { background: var(--main); color: white; }
+        .logout { background: var(--red) !important; color: white !important; margin: 15px 12px; }
+
+        .content { flex: 1; padding: 30px; overflow-y: auto; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; border-right: 6px solid var(--main); }
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .admin-only { display: none !important; }
+        textarea { width: 100%; border-radius: 8px; border: 1px solid #eee; padding: 12px; }
+    </style>
+</head>
+<body>
+
+<div id="login_screen">
+    <div class="login-card">
+        <h1>SFE</h1>
+        <div class="role-selector">
+            <div class="role-btn active" id="btn_student" onclick="setRole('student')">طالب 🎓</div>
+            <div class="role-btn" id="btn_teacher" onclick="setRole('teacher')">معلم 👨‍🏫</div>
+        </div>
+        <input id="user_input" placeholder="اسم المستخدم" type="text">
+        <input id="pass_input" placeholder="كلمة المرور" type="password">
+        <button class="login-submit" onclick="attemptLogin()">دخول للنظام</button>
+    </div>
+</div>
+
+<div class="sidebar">
+    <h2>SFE CLOUD</h2>
+    <div class="nav-items">
+        <div class="nav-item active" onclick="showP('home', this)">🏠 الرئيسية</div>
+        <div id="admin_link" class="nav-item admin-only" onclick="showP('admin', this)">⚙️ لوحة التحكم</div>
+        <div class="nav-item" onclick="showP('sch', this)">📅 جدول الحصص</div>
+        <div class="nav-item" onclick="showP('can', this)">🥪 المقصف</div>
+        <div class="nav-item" onclick="showP('att', this)">📝 الغياب</div>
+        <div class="nav-item" onclick="showP('task', this)">✅ الواجبات</div>
+        <div class="nav-item" onclick="showP('trip', this)">🚌 الرحلات</div>
+        <div class="nav-item" onclick="showP('hon', this)">🏆 لوحة الشرف</div>
+        <div class="nav-item" onclick="showP('lib', this)">📚 المكتبة</div>
+        <div class="nav-item" onclick="showP('ai', this)">🤖 الابتكار</div>
+        <div class="nav-item" onclick="showP('bus', this)">🚍 تتبع الحافلة</div>
+        <div class="nav-item" onclick="showP('sport', this)">⚽ الرياضة</div>
+        <div class="nav-item" onclick="showP('rad', this)">🎙️ الإذاعة</div>
+        <div class="nav-item" onclick="showP('msg', this)">📩 الاقتراحات</div>
+        <div class="nav-item" onclick="showP('pts', this)">🎯 النقاط</div>
+    </div>
+    <div class="nav-item logout" onclick="location.reload()">🚪 تسجيل الخروج</div>
+</div>
+
+<div class="content">
+    <div id="home" class="page active">
+        <div class="box"><h1 id="welcome_msg">مرحباً بك</h1><p id="v_ann">نظام SFE المطور جاهز.</p></div>
+    </div>
+
+    <div id="admin" class="page">
+        <h2 style="color:var(--red)">⚙️ إدارة النظام (للمعلم)</h2>
+        <div class="admin-grid" id="admin_controls">
+            </div>
+        <button onclick="saveData()" style="background:var(--green); color:white; padding:20px; width:100%; border:none; border-radius:15px; cursor:pointer; font-size:18px; margin-top:20px">💾 حفظ التعديلات لكافة الخانات</button>
+    </div>
+
+    <div id="sch" class="page"><h2>📅 جدول الحصص</h2><div class="box" id="v_sch"></div></div>
+    <div id="can" class="page"><h2>🥪 المقصف</h2><div class="box" id="v_can"></div></div>
+    <div id="att" class="page"><h2>📝 الغياب</h2><div class="box" id="v_att"></div></div>
+    <div id="task" class="page"><h2>✅ الواجبات</h2><div class="box" id="v_task"></div></div>
+    <div id="trip" class="page"><h2>🚌 الرحلات</h2><div class="box" id="v_trip"></div></div>
+    <div id="hon" class="page"><h2>🏆 لوحة الشرف</h2><div class="box" id="v_hon"></div></div>
+    <div id="lib" class="page"><h2>📚 المكتبة</h2><div class="box" id="v_lib"></div></div>
+    <div id="ai" class="page"><h2>🤖 الابتكار</h2><div class="box">مختبر البرمجة مفتوح.</div></div>
+    <div id="bus" class="page"><h2>🚍 تتبع الحافلة</h2><div class="box" id="v_bus"></div></div>
+    <div id="sport" class="page"><h2>⚽ الرياضة</h2><div class="box" id="v_sport"></div></div>
+    <div id="rad" class="page"><h2>🎙️ الإذاعة</h2><div class="box" id="v_rad"></div></div>
+    <div id="msg" class="page"><h2>📩 الاقتراحات</h2><div class="box"><textarea placeholder="اكتب هنا..."></textarea></div></div>
+    <div id="pts" class="page"><h2>🎯 النقاط</h2><div class="box">رصيدك: <b id="v_pts"></b></div></div>
+</div>
+
+<script>
+    let currentRole = 'student';
+    const keys = ['ann', 'sch', 'can', 'att', 'task', 'trip', 'hon', 'lib', 'bus', 'sport', 'rad', 'pts'];
+    const names = {'ann':'الرئيسية','sch':'الجدول','can':'المقصف','att':'الحضور','task':'الواجبات','trip':'الرحلات','hon':'المتفوق','lib':'المكتبة','bus':'الحافلة','sport':'الرياضة','rad':'الإذاعة','pts':'النقاط'};
+
+    // إنشاء واجهة التحكم تلقائياً
+    const grid = document.getElementById('admin_controls');
+    keys.forEach(k => {
+        grid.innerHTML += `<div class="box"><b>تعديل ${names[k]}:</b><textarea id="e_${k}"></textarea></div>`;
+    });
+
+    function setRole(role) {
+        currentRole = role;
+        document.getElementById('btn_teacher').classList.toggle('active', role === 'teacher');
+        document.getElementById('btn_student').classList.toggle('active', role === 'student');
+        document.getElementById('user_input').style.display = (role === 'teacher') ? 'none' : 'block';
+    }
+
+    function attemptLogin() {
+        if (document.getElementById('pass_input').value === "123456") {
+            document.getElementById('login_screen').style.display = 'none';
+            if (currentRole === 'teacher') {
+                document.getElementById('admin_link').style.setProperty('display', 'flex', 'important');
+                document.getElementById('welcome_msg').innerText = "مرحباً أيها المعلم";
+            } else {
+                document.getElementById('welcome_msg').innerText = "مرحباً بك يا " + document.getElementById('user_input').value;
+            }
+        } else { alert("كلمة المرور خاطئة!"); }
+    }
+
+    function saveData() {
+        keys.forEach(k => localStorage.setItem('sfe_v_final_'+k, document.getElementById('e_'+k).value));
+        load(); alert("تم الحفظ بنجاح!");
+    }
+
+    function load() {
+        keys.forEach(k => {
+            let val = localStorage.getItem('sfe_v_final_'+k);
+            if(val) {
+                if(document.getElementById('v_'+k)) document.getElementById('v_'+k).innerText = val;
+                if(document.getElementById('e_'+k)) document.getElementById('e_'+k).value = val;
+            }
+        });
+    }
+
+    function showP(id, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    window.onload = load;
+</script>
+</body>
+</html>
